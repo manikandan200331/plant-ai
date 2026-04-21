@@ -1,5 +1,6 @@
 import os
-import tensorflow as tf
+def predict_plant(image):
+    return "Model temporarily disabled"
 from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing import image
 import numpy as np
