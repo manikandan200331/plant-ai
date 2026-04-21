@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from flask import Flask, request, jsonify, send_from_directory
-from predict_disease import predict_plant
+from backend.predict_disease import predict_plant
 from flask_cors import CORS
 import os
 
