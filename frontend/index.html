@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Agrovision AI</title>
+<style>
+* { box-sizing: border-box; }
+body { font-family: Arial; background: linear-gradient(135deg, #0f2027, #203a43, #2c5364); color: white; margin: 0; padding: 0; min-height: 100vh; }
+.title { text-align: center; padding: 30px 20px 10px; }
+.title h1 { font-size: 2.5em; color: hsl(120, 100%, 50%); text-shadow: 0 0 20px hsl(120, 100%, 50%); margin: 0; }
+.title p { color: #aaa; font-size: 1em; margin-top: 8px; }
+
+.container { display: flex; flex-direction: column; gap: 25px; padding: 20px 30px; }
+
+.box { background: rgba(255,255,255,0.06); border: 2px solid #00ffc8; border-radius: 15px; padding: 25px; box-shadow: 0 0 20px rgba(0,255,200,0.2); }
+.box h2 { color: #00ffc8; margin-top: 0; font-size: 1.3em; border-bottom: 1px solid rgba(0,255,200,0.3); padding-bottom: 10px; }
+.box h3 { color: #00ffc8; margin-top: 0; font-size: 1.3em; border-bottom: 1px solid rgba(0,255,200,0.3); padding-bottom: 10px; }
+
+.upload-section { display: flex; gap: 30px; align-items: flex-start; }
+.left { width: 38%; }
+.right { width: 62%; }
+
+.file-btn-row { display: flex; align-items: center; gap: 10px; flex-wrap: nowrap; }
+
+input[type="file"] { background: rgba(255,255,255,0.1); border: 1px solid #00ffc8; border-radius: 5px; padding: 8px; color: white; width: auto; cursor: pointer; flex: 1; }
+
+button { padding: 10px 20px; background: #00ff88; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 1em; transition: all 0.2s; margin-top: 0; white-space: nowrap; }
+button:hover { background: #00cc6a; transform: scale(1.05); }
+
+#previewImg { display: none; max-width: 100%; margin-top: 15px; border: 2px solid #00ffc8; border-radius: 10px; box-shadow: 0 0 15px rgba(0,255,200,0.3); }
+
+#result { display: flex; flex-direction: column; gap: 10px; }
+.result-placeholder { color: #888; font-style: italic; padding: 20px 0; }
+.result-card { background: rgba(0,255,200,0.08); border-left: 4px solid #00ffc8; border-radius: 8px; padding: 12px 16px; font-size: 1em; }
+.result-card .label { color: #00ffc8; font-size: 0.85em; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+.result-card .value { font-size: 1.1em; font-weight: bold; color: white; }
+.result-card.disease .value { color: #ff6b6b; font-size: 1.2em; }
+.result-card.confidence .value { color: #ffd93d; }
+.result-card.affected .value { color: #ff9f43; }
+.result-card.reason .value { color: #dfe6e9; font-size: 0.95em; font-weight: normal; line-height: 1.5; }
+
+.remedy-container { display: flex; gap: 20px; }
+.remedy-box { flex: 1; background: rgba(0,0,0,0.3); padding: 18px; border-radius: 10px; border: 1px solid rgba(0,255,200,0.2); }
+.remedy-box h3 { margin-top: 0; color: #00ffc8; font-size: 1em; border-bottom: none; padding-bottom: 0; }
+.remedy-box p { margin: 0; line-height: 1.6; color: #ddd; }
+
+#chatWindow { height: 200px; overflow-y: auto; background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px; margin-bottom: 15px; border: 1px solid rgba(0,255,200,0.2); }
+#chatWindow p { margin: 6px 0; line-height: 1.5; }
+#chatWindow b { color: #00ffc8; }
+
+select { background: rgba(255,255,255,0.1); border: 1px solid #00ffc8; border-radius: 6px; padding: 8px 12px; color: white; margin-right: 10px; cursor: pointer; font-size: 0.95em; }
+select option { background: #1a1a2e; }
+
+.loading { color: #00ffc8; font-style: italic; padding: 15px 0; }
+</style>
+</head>
+
+<body>
+
+<div class="title">
+  <h1>🌿 Agrovision AI</h1>
+  <p>Intelligent Leaf Disease Detection & Smart Remedy System</p>
+</div>
+
+<div class="container">
+
+<div class="box">
+  <h3>🔍 Leaf Disease Detection</h3>
+  <div class="upload-section">
+    <div class="left">
+      <div class="file-btn-row">
+        <input type="file" id="leafImage" accept="image/*">
+        <button id="uploadBtn" type="button">🔎 Analyze Leaf</button>
+      </div>
+      <img id="previewImg">
+    </div>
+    <div class="right">
+      <div id="result">
+        <p class="result-placeholder">Upload a leaf image and click Analyze to see results...</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="box">
+  <h2>💊 Remedy Suggestion</h2>
+  <div class="remedy-container">
+    <div class="remedy-box">
+      <h3>🌱 Organic Remedy</h3>
+      <p id="organicRemedy">Organic remedy will appear here after analysis.</p>
+    </div>
+    <div class="remedy-box">
+      <h3>🧪 Chemical Remedy</h3>
+      <p id="chemicalRemedy">Chemical remedy will appear here after analysis.</p>
+    </div>
+  </div>
+</div>
+
+<div class="box">
+  <h2>🤖 AI Plant Assistant</h2>
+  <div id="chatWindow">
+    <p><b>AI:</b> Hello! Ask me about plant diseases. 🌿</p>
+  </div>
+  <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+    <select id="langSelect">
+      <option value="en">English</option>
+      <option value="ta">Tamil</option>
+      <option value="tg">Tanglish</option>
+    </select>
+    <select id="qaSelect">
+      <option value="tomato_early_blight">Tomato Early Blight</option>
+      <option value="tomato_late_blight">Tomato Late Blight</option>
+      <option value="potato_early_blight">Potato Early Blight</option>
+      <option value="potato_late_blight">Potato Late Blight</option>
+      <option value="pepper_bell_bacterial_spot">Pepper Bell Bacterial Spot</option>
+    </select>
+    <button id="qaBtn">Get Answer</button>
+  </div>
+</div>
+
+</div>
+
+<script src="https://code.responsivevoice.org/responsivevoice.js"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function(){
+
+  function speakText(text, lang='en'){
+    try {
+      if(typeof responsiveVoice === 'undefined') return;
+      if(lang==='ta'){ responsiveVoice.speak(text, "Tamil Male"); }
+      else { responsiveVoice.speak(text, "UK English Male"); }
+    } catch(e) {
+      console.log("Voice error:", e);
+    }
+  }
+
+  document.getElementById("uploadBtn").addEventListener("click", function(event){
+    event.preventDefault();
+    const fileInput = document.getElementById("leafImage");
+    const file = fileInput.files[0];
+    if(!file){ alert("Please upload a leaf image first!"); return; }
+
+    const previewImg = document.getElementById("previewImg");
+    previewImg.src = URL.createObjectURL(file);
+    previewImg.style.display = "block";
+
+    document.getElementById("result").innerHTML = '<p class="loading">⏳ Analyzing leaf... please wait...</p>';
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    fetch("http://agrovisionai.pythonanywhere.com/predict", {
+      method: "POST",
+      body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+      if(data.error){
+        document.getElementById("result").innerHTML = '<p style="color:#ff6b6b;">❌ Server error... try again</p>';
+        return;
+      }
+
+      document.getElementById("result").innerHTML = `
+        <div class="result-card disease">
+          <div class="label">🌿 Disease Detected</div>
+          <div class="value">${data.disease.replace(/_/g,' ').toUpperCase()}</div>
+        </div>
+        <div class="result-card confidence">
+          <div class="label">📊 Confidence</div>
+          <div class="value">${data.confidence}%</div>
+        </div>
+        <div class="result-card affected">
+          <div class="label">🍃 Affected Leaf Area</div>
+          <div class="value">${data.affected}%</div>
+        </div>
+        <div class="result-card reason">
+          <div class="label">📋 Reason</div>
+          <div class="value">${data.reason}</div>
+        </div>
+      `;
+
+      document.getElementById("organicRemedy").innerText = data.organic;
+      document.getElementById("chemicalRemedy").innerText = data.chemical;
+
+      const lang = document.getElementById("langSelect").value;
+      const speechText = `Disease: ${data.disease}. Confidence: ${data.confidence} percent. Affected leaf: ${data.affected} percent. Reason: ${data.reason}. Organic remedy: ${data.organic}. Chemical remedy: ${data.chemical}.`;
+      speakText(speechText, lang);
+    })
+    .catch(err => {
+      console.log("Server error:", err);
+      document.getElementById("result").innerHTML = '<p style="color:#ff6b6b;">❌ Cannot connect to server. Make sure app.py is running!</p>';
+    });
+  });
+
+  document.getElementById("qaBtn").addEventListener("click", function(){
+    const selectedQA = document.getElementById("qaSelect").value;
+    const selectedLang = document.getElementById("langSelect").value;
+
+    fetch("http://agrovisionai.pythonanywhere.com/get_answer", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({qid: selectedQA, lang: selectedLang})
+    })
+    .then(res => res.json())
+    .then(data => {
+      const chatWindow = document.getElementById("chatWindow");
+      chatWindow.innerHTML += `<p><b>You:</b> ${document.getElementById("qaSelect").selectedOptions[0].text}</p>`;
+      chatWindow.innerHTML += `<p><b>AI:</b> ${data.answer}</p>`;
+      chatWindow.scrollTop = chatWindow.scrollHeight;
+      speakText(data.answer, selectedLang);
+    })
+    .catch(err => console.log("QA Fetch Error:", err));
+  });
+
+});
+</script>
+</body>
+</html>
